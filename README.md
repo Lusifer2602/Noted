@@ -21,7 +21,7 @@
 
 ## 🎨 Preview
 
-![Noted UI Screenshot](./screenshot.png) <!-- Replace with actual screenshot path -->
+![Noted UI Screenshot](/public/ss.png) <!-- Replace with actual screenshot path -->
 
 ---
 

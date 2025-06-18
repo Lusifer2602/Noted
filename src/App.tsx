@@ -3,6 +3,9 @@ import './App.css';
 import DrawingCanvas from './components/DrawingCanvas';
 import './components/DrawingCanvas.css';
 import customLogo from './custom-logo.svg';
+import { Excalidraw } from '@excalidraw/excalidraw';
+import ExcalidrawEditor from './components/ExcalidrawEditor';
+import './styles/excalidraw.css';
 
 // Types
 interface Note {
@@ -12,6 +15,9 @@ interface Note {
   color: string;
   createdAt: number;
   drawing?: string; // Base64 encoded drawing
+  drawingType?: 'canvas' | 'excalidraw';
+  created: Date;
+  updated: Date;
 }
 
 // Color palette for notes
@@ -30,6 +36,7 @@ function App() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [activeNote, setActiveNote] = useState<Note | null>(null);
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
+  const [drawingType, setDrawingType] = useState<'canvas' | 'excalidraw'>('canvas');
 
   // Load notes from localStorage on initial render
   useEffect(() => {
@@ -56,6 +63,8 @@ function App() {
       content: '',
       color: NOTE_COLORS[Math.floor(Math.random() * NOTE_COLORS.length)],
       createdAt: Date.now(),
+      created: new Date(),
+      updated: new Date(),
     };
     setNotes([...notes, newNote]);
     setActiveNote(newNote);
@@ -78,7 +87,11 @@ function App() {
   // Save drawing to note
   const saveDrawing = (drawingData: string) => {
     if (activeNote) {
-      const updatedNote = { ...activeNote, drawing: drawingData };
+      const updatedNote = { 
+        ...activeNote, 
+        drawing: drawingData,
+        drawingType // Add this line to save the drawing type
+      };
       updateNote(updatedNote);
       setIsDrawing(false);
     }
@@ -212,20 +225,39 @@ function App() {
       {/* Drawing Canvas Modal */}
       {isDrawing && activeNote && (
         <div className="modal-overlay">
-          <div className="drawing-editor" onClick={(e) => e.stopPropagation()}>
-            <h3>Drawing Canvas</h3>
-            <DrawingCanvas 
-              onSave={saveDrawing} 
-              initialDrawing={activeNote.drawing}
-            />
-            <div className="drawing-actions">
-              <button 
-                className="action-button cancel-button"
-                onClick={() => setIsDrawing(false)}
-                aria-label="Cancel drawing"
-              >
-                Cancel
-              </button>
+          <div className="drawing-modal">
+            <div className="drawing-header">
+              <h3>Drawing Canvas</h3>
+              <div className="drawing-tools">
+                <button 
+                  className={drawingType === 'canvas' ? 'active' : ''} 
+                  onClick={() => setDrawingType('canvas')}
+                >
+                  Basic Canvas
+                </button>
+                <button 
+                  className={drawingType === 'excalidraw' ? 'active' : ''} 
+                  onClick={() => setDrawingType('excalidraw')}
+                >
+                  Excalidraw
+                </button>
+              </div>
+            </div>
+            
+            {drawingType === 'canvas' ? (
+              <DrawingCanvas 
+                onSave={saveDrawing} 
+                initialDrawing={activeNote.drawing}
+              />
+            ) : (
+              <ExcalidrawEditor
+                onSave={saveDrawing}
+                initialDrawing={activeNote.drawing}
+              />
+            )}
+            
+            <div className="modal-buttons">
+              <button onClick={() => setIsDrawing(false)}>Close</button>
             </div>
           </div>
         </div>
